@@ -1,4 +1,4 @@
-use super::input;
+use crate::day01::input;
 
 pub fn part_a() -> i32 {
     let inventory = match input::get_input("./src/day01/input.txt") {

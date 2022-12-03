@@ -1,6 +1,14 @@
+use std::process;
+
 mod day01;
+mod day02;
 
 fn main() {
-    println!("Maximum calories carried: {}", day01::part_a::part_a());
-    println!("Combined calories of Top 3: {}", day01::part_b::part_b());
+    const DAY: i32 = 2;
+
+    match DAY {
+        1 => day01::solution(),
+        2 => day02::solution(),
+        _ => process::exit(0),
+    }
 }
