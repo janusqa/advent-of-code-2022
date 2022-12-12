@@ -1,4 +1,3 @@
-use itertools::fold;
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -36,7 +35,7 @@ pub fn part_b(contents: &str) -> i32 {
     let mut space_to_delete = space_used;
     let file_space_needed = 30000000 - (file_system_size - space_used);
 
-    let mut total_sum = 0;
+    // let mut total_sum = 0;
 
     for stdin in contents.lines() {
         if RE_CMD.is_match(stdin) {
@@ -49,9 +48,9 @@ pub fn part_b(contents: &str) -> i32 {
                                 let folder_size = operations.pop().unwrap().size;
                                 let operations_len = operations.len();
                                 operations[operations_len - 1].size += folder_size;
-                                if folder_size <= 100000 {
-                                    total_sum += folder_size;
-                                }
+                                // if folder_size <= 100000 {
+                                //     total_sum += folder_size;
+                                // }
                                 if folder_size < space_to_delete && folder_size >= file_space_needed
                                 {
                                     space_to_delete = folder_size;
@@ -90,9 +89,9 @@ pub fn part_b(contents: &str) -> i32 {
         if operations.len() > 0 {
             operations[operations_len - 1].size += folder_size;
         }
-        if folder_size <= 100000 {
-            total_sum += folder_size;
-        }
+        // if folder_size <= 100000 {
+        //     total_sum += folder_size;
+        // }
         if folder_size < space_to_delete && folder_size >= file_space_needed {
             space_to_delete = folder_size;
         }
