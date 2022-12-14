@@ -33,13 +33,10 @@ pub fn part_b(contents: &str) -> i32 {
 
         // draw a pixel. If any part of sprite is at position being drawn
         // draw a light pixel otherwise draw a dark pixel
-        let mut pixel = ' ';
+
         if sprite.contains(&(((cycle - 1) as i32) % 40)) {
-            pixel = '#';
-        } else {
-            pixel = '.';
+            crt[cycle - 1] = '#';
         }
-        crt[cycle - 1] = pixel;
 
         // println!(
         //     "instruction: {}, cycle: {}, sprite: {:?}, addxcyc: {}, paint: {},  pixel: {}",
