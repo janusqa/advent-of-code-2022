@@ -13,9 +13,10 @@ mod day10;
 mod day11;
 mod day12;
 mod day13;
+mod day14;
 
 fn main() {
-    const DAY: i32 = 13;
+    const DAY: i32 = 14;
 
     match DAY {
         1 => day01::solution(),
@@ -31,6 +32,7 @@ fn main() {
         11 => day11::solution(),
         12 => day12::solution(),
         13 => day13::solution(),
+        14 => day14::solution(),
         _ => process::exit(0),
     }
 }
