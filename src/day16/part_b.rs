@@ -1,7 +1,48 @@
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
+
+// used for memoizing seen states
+#[derive(Hash, PartialEq, Eq, Debug)]
+struct StateKey {
+    valve: String,
+    time_remaining: i32,
+    opened: Vec<String>,
+    elephant: bool,
+}
+
+impl StateKey {
+    fn new(valve: String, time_remaining: i32, opened: &mut Vec<String>, elephant: bool) -> Self {
+        return StateKey {
+            valve,
+            time_remaining,
+            opened: opened
+                .clone()
+                .into_iter()
+                .sorted_by(|a, b| a.cmp(&b))
+                .collect(),
+            elephant,
+        };
+    }
+}
+
+#[derive(Debug)]
+struct Valve<'a> {
+    _tag: &'a str,
+    flow: i32,
+    neighbours: Vec<&'a str>,
+}
+
+impl<'a> Valve<'a> {
+    fn new(tag: &'a str, flow: i32, neighbours: Vec<&'a str>) -> Valve<'a> {
+        return Valve {
+            _tag: tag,
+            flow,
+            neighbours,
+        };
+    }
+}
 
 pub fn part_b(contents: &str) -> i32 {
     lazy_static! {
@@ -9,7 +50,8 @@ pub fn part_b(contents: &str) -> i32 {
         static ref RE_NODE_VALUE: Regex = Regex::new(r"\d{1,}").unwrap();
     }
 
-    let mut graph: HashMap<&str, (i32, Vec<&str>)> = HashMap::new();
+    // Parsing the input
+    let mut graph: HashMap<&str, Valve> = HashMap::new();
     for line in contents.lines() {
         let mut nodes = RE_NODES.find_iter(line);
         let node_value = RE_NODE_VALUE
@@ -23,20 +65,47 @@ pub fn part_b(contents: &str) -> i32 {
         while let Some(neighbour) = nodes.next() {
             neighbours.push(neighbour.as_str());
         }
-        graph.insert(node_name, (node_value, neighbours));
+        graph.insert(node_name, Valve::new(node_name, node_value, neighbours));
     }
 
+    // Construct the shortest paths from each node to every other node that has a fuctional valve
+    let mut destinations: HashMap<&str, HashMap<&str, i32>> = HashMap::new();
+    let shortest_paths = build_shortest_paths(&graph);
+    for (tag, _) in graph.iter() {
+        let selected_destinations = shortest_paths
+            .iter()
+            .filter(|&(k, _)| {
+                (k.0 == *tag && graph.get(&k.1).unwrap().flow > 0)
+                    || (k.1 == *tag && graph.get(&k.0).unwrap().flow > 0)
+            })
+            .fold(HashMap::new(), |mut acc, shortest_path| {
+                match *tag == shortest_path.0 .0 {
+                    true => {
+                        acc.insert(shortest_path.0 .1, *shortest_path.1);
+                        acc
+                    }
+                    false => {
+                        acc.insert(shortest_path.0 .0, *shortest_path.1);
+                        acc
+                    }
+                }
+            });
+        destinations.insert(*tag, selected_destinations);
+    }
+
+    // Walking thru the valve system and turning on valves. DFS (Recursion) used.
     let mut opened: Vec<String> = Vec::new();
-    let mut memo: HashMap<String, i32> = HashMap::new();
+    let mut memo: HashMap<StateKey, i32> = HashMap::new();
     let time_remaining = 26;
-    let elephant_turn_next = true;
+    let elephant = true;
     let mp = max_pressure(
         "AA",
-        &graph,
-        &mut opened,
         time_remaining,
+        &graph,
+        &destinations,
+        &mut opened,
         &mut memo,
-        elephant_turn_next,
+        elephant,
     );
 
     return mp;
@@ -44,64 +113,106 @@ pub fn part_b(contents: &str) -> i32 {
 
 fn max_pressure(
     valve: &str,
-    graph: &HashMap<&str, (i32, Vec<&str>)>,
-    opened: &mut Vec<String>,
     time_remaining: i32,
-    memo: &mut HashMap<String, i32>,
-    elephant_turn_next: bool,
+    graph: &HashMap<&str, Valve>,
+    destinations: &HashMap<&str, HashMap<&str, i32>>,
+    opened: &mut Vec<String>,
+    memo: &mut HashMap<StateKey, i32>,
+    elephant: bool,
 ) -> i32 {
-    let key = format!(
-        "{}{}{}{}",
-        valve,
-        opened
-            .iter()
-            .sorted_by(|a, b| a.cmp(&b))
-            .fold(String::new(), |acc, v| format!("{}{}", acc, v)),
-        time_remaining,
-        elephant_turn_next
-    );
+    let key = StateKey::new(String::from(valve), time_remaining, opened, elephant);
 
-    if memo.contains_key(&key) {
-        return *(memo.get(&key).unwrap());
+    if let Some(cached_pressure) = memo.get(&key) {
+        return *cached_pressure;
     }
 
     if time_remaining <= 0 {
-        if elephant_turn_next {
-            return max_pressure("AA", &graph, opened, 26, memo, !elephant_turn_next);
+        if elephant {
+            return max_pressure("AA", 26, graph, destinations, opened, memo, false);
         }
         return 0;
     }
 
     let mut mp = 0;
 
-    for neighbour in &graph.get(valve).unwrap().1 {
-        mp = mp.max(max_pressure(
-            neighbour,
-            graph,
-            opened,
-            time_remaining - 1,
-            memo,
-            elephant_turn_next,
-        ));
-
-        if graph.get(valve).unwrap().0 > 0 && !opened.contains(&String::from(valve)) {
-            opened.push(String::from(valve));
-            mp = mp.max(
-                (graph.get(valve).unwrap().0 * (time_remaining - 1))
-                    + max_pressure(
-                        neighbour,
-                        graph,
-                        opened,
-                        time_remaining - 2,
-                        memo,
-                        elephant_turn_next,
-                    ),
-            );
-            opened.pop();
-        }
-
-        memo.entry(key.clone()).or_insert(mp);
+    if graph.get(&valve).unwrap().flow > 0 && !opened.contains(&String::from(valve)) {
+        opened.push(String::from(valve));
+        mp = mp.max(
+            (graph.get(&valve).unwrap().flow * (time_remaining - 1))
+                + max_pressure(
+                    valve,
+                    time_remaining - 1,
+                    graph,
+                    destinations,
+                    opened,
+                    memo,
+                    elephant,
+                ),
+        );
+        opened.pop();
     }
 
+    for (destination, time_elapsed) in destinations.get(&valve).unwrap().iter() {
+        if !opened.contains(&String::from(*destination)) {
+            mp = mp.max(max_pressure(
+                *destination,
+                time_remaining - *time_elapsed,
+                graph,
+                destinations,
+                opened,
+                memo,
+                elephant,
+            ));
+        }
+    }
+
+    memo.entry(key).or_insert(mp);
+
     return mp;
+}
+
+fn build_shortest_paths<'a>(graph: &HashMap<&'a str, Valve>) -> HashMap<(&'a str, &'a str), i32> {
+    let mut shortest_paths: HashMap<(&str, &str), i32> = HashMap::new();
+    for start in graph.keys() {
+        for end in graph.keys() {
+            if *start == *end {
+                continue;
+            }
+
+            if shortest_paths.contains_key(&(*end, *start)) {
+                continue;
+            }
+
+            shortest_paths.insert((*start, *end), shortest_path(*start, *end, graph));
+        }
+    }
+
+    return shortest_paths;
+}
+
+fn shortest_path(start: &str, end: &str, graph: &HashMap<&str, Valve>) -> i32 {
+    let mut visited: HashSet<&str> = HashSet::new();
+
+    let mut explore: VecDeque<(&str, i32)> = VecDeque::from([(start, 0)]);
+    visited.insert(start);
+
+    while explore.len() > 0 {
+        let (current, distance) = explore.pop_front().unwrap();
+
+        if current == end {
+            return distance;
+        }
+
+        for neighbour in &graph.get(&current).unwrap().neighbours {
+            if visited.contains(&*neighbour) {
+                continue;
+            }
+
+            explore.push_back((*neighbour, distance + 1));
+
+            visited.insert(*neighbour);
+        }
+    }
+
+    return 0;
 }

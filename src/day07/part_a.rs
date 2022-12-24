@@ -3,20 +3,24 @@ use regex::Regex;
 
 #[derive(Debug)]
 enum NodeType {
-    File,
+    _File,
     Directory,
 }
 
 #[derive(Debug)]
 struct Node {
-    name: String,
-    ntype: NodeType,
+    _name: String,
+    _ntype: NodeType,
     size: i32,
 }
 
 impl Node {
     fn new(name: String, ntype: NodeType, size: i32) -> Node {
-        Node { name, ntype, size }
+        Node {
+            _name: name,
+            _ntype: ntype,
+            size,
+        }
     }
 }
 

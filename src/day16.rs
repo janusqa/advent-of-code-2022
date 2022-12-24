@@ -5,7 +5,7 @@ mod part_a;
 mod part_b;
 
 pub fn solution() {
-    let input = input::get_input("./src/day16/input_test.txt");
+    let input = input::get_input("./src/day16/input.txt");
     if let Err(e) = input {
         eprintln!("Application error: {}", e);
         process::exit(1)
