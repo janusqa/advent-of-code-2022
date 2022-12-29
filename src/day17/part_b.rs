@@ -197,12 +197,14 @@ pub fn part_b(contents: &str) -> i64 {
     ]);
 
     // We cannot loop through 1 trillion in a reasonable time.  It's possible, but it could take at least 1 day.
-    // Therefore we need to look for a cycle. Not just a cycle but one where each cycle is adjacent to each other
-    // to the end of the loop AND the size of the loop 1_000_000_000_000, in this example, MINUS the times a rock is dropped before cycle is detected
-    // must be divisible by the size of the cycle, so that we can perform a clean calculation, right to the end of 1 trillion iterations exactly.
+    // Therefore we need to look for a cycle with the following characteristics
+    // 1. cycles must be adjacent to each other
+    // 2. cycles should run from the start of first dection to the very end of the 1 trillionth iteration. That means when you remove the set of drops
+    // that precede the dectetion of the first cycle, what remains should be exactly divisible by the size of the cycle. This allows for a very clean
+    // calculation for the rest of the dropped rocks.
     // The equation is
-    // (((loop_size − start_of_cycle_1) ÷ (start_of_cycle_2 − start_of_cycle_1)) × (highest_point_of_cycle_2 − highest_point_of_cycle_1)) + higest_point_of_cycle_1
-    // Concrete example for part 2 sample data (((1000000000000 - 15) + (50 - 15)) * (78 - 25)) + 25
+    // (((loop_size − start_of_cycle_1) / (start_of_cycle_2 − start_of_cycle_1)) × (highest_point_at_start_of_cycle_2 − highest_point_at_start_of_cycle_1)) + highest_point_at_start_of_cycle_1
+    // Concrete example for part 2 sample data (((1000000000000 - 15) / (50 - 15)) * (78 - 25)) + 25
     // Traditional memoization is used here for cycle detection
     let num_drops = 1_000_000_000_000i64;
     for i in 0..num_drops {
