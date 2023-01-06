@@ -1,6 +1,0 @@
-Result: 164014
-Completed in 313.42ms
-
-State { pos: (0, 50), facing: Right }
-Result: 47525
-Completed in 58.83ms
