@@ -23,7 +23,6 @@ pub fn part_b(contents: &str) -> i64 {
 fn monkey_business(
     node_name: &str,
     node: &Vec<&str>,
-
     monkeys: &HashMap<&str, Vec<&str>>,
     humn: &mut Vec<(String, i64, &str)>,
 ) -> Option<i64> {
