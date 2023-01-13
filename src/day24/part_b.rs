@@ -39,9 +39,9 @@ impl ValleyState {
             })
             .filter(|&(r, c)| {
                 i32::try_from(valley_area.0).unwrap() <= r
-                    && r < i32::try_from(valley_area.1 + 1).unwrap()
+                    && r <= i32::try_from(valley_area.1).unwrap()
                     && i32::try_from(valley_area.2).unwrap() <= c
-                    && c < i32::try_from(valley_area.3 + 1).unwrap()
+                    && c <= i32::try_from(valley_area.3).unwrap()
             })
             .map(|(r, c)| (usize::try_from(r).unwrap(), usize::try_from(c).unwrap()))
             .filter(|f| {
@@ -138,7 +138,6 @@ fn get_blizzard_states(
             )
         })
         .collect::<HashMap<_, _>>();
-    // return bs;
 }
 
 fn clear_ground(
