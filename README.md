@@ -7,7 +7,7 @@ Advent of Code is an Advent calendar of small programming puzzles for a variety 
 You don't need a computer science background to participate - just a little programming knowledge and some problem solving skills will get you pretty far. Nor do you need a fancy computer; every problem has a solution that completes in at most 15 seconds on ten-year-old hardware.<br/>
 Source: [Advent of Code Github Topic](https://github.com/topics/advent-of-code)<br/>
 
-[Day 01](https://github.com/janusqa/advent-of-code-2022/tree/main/day01)<br/>
+[Day 01](https://github.com/janusqa/advent-of-code-2022/tree/main/src/day01)<br/>
 [Day 02](https://github.com/janusqa/advent-of-code-2022/tree/main/day02)<br/>
 [Day 03](https://github.com/janusqa/advent-of-code-2022/tree/main/day03)<br/>
 [Day 04](https://github.com/janusqa/advent-of-code-2022/tree/main/day04)<br/>
